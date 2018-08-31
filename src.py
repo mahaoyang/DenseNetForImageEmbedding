@@ -21,6 +21,7 @@ class Ime:
         data = data2array(self.base_path)
         train_list = data['train_list']
         train_num = 30000
+        val_num = 1000
         x = []
         y1, y2, y3 = [], [], []
         for i in train_list:
@@ -41,12 +42,14 @@ class Ime:
         if load_w:
             model.load_weights(self.model_weights)
         model.fit(x=x[:train_num], y=[y1[:train_num], y2[:train_num], y3[:train_num], y4[:train_num]],
-                  validation_data=[x[train_num:-200],
-                                   [y1[train_num:-200], y2[train_num:-200], y3[train_num:-200], y4[:train_num]]],
+                  validation_data=[x[train_num:-val_num],
+                                   [y1[train_num:-val_num], y2[train_num:-val_num], y3[train_num:-val_num],
+                                    y4[train_num:-val_num]]],
                   epochs=epochs, batch_size=batch_size)
         model_weights = copy.deepcopy(self.model_weights)
         model.save(self.model_weights)
-        ev = model.evaluate(x=x[-200:], y=[y1[-200:], y2[-200:], y3[-200:]], batch_size=200)
+        ev = model.evaluate(x=x[-val_num:], y=[y1[-val_num:], y2[-val_num:], y3[-val_num:], y4[-val_num:]],
+                            batch_size=200)
         ev = dict(zip(model.metrics_names, ev))
         print(ev)
         return model_weights
