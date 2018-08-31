@@ -1,4 +1,5 @@
 from keras import layers
+from keras import backend
 
 
 def dense_block(x, blocks):
@@ -28,7 +29,7 @@ def transition_block(x, reduction):
     # Returns
         output tensor for the block.
     """
-    bn_axis = 1
+    bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
     x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5,
                                   )(x)
     x = layers.Activation('relu', )(x)
@@ -50,7 +51,7 @@ def conv_block(x, growth_rate):
     # Returns
         Output tensor for the block.
     """
-    bn_axis = 1
+    bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
     x1 = layers.BatchNormalization(axis=bn_axis,
                                    epsilon=1.001e-5,
                                    )(x)
@@ -70,7 +71,7 @@ def conv_block(x, growth_rate):
 
 
 def dense_net(img_input, blocks):
-    bn_axis = 1
+    bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
     x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
     x = layers.Conv2D(64, 7, strides=2, use_bias=False, name='conv1/conv')(x)
     x = layers.BatchNormalization(
