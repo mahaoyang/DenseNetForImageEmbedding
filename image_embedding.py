@@ -27,3 +27,4 @@ def ime_model(lr=0.001, shape=(64, 64, 3)):
                   loss=[losses.mean_squared_error, losses.categorical_crossentropy, losses.categorical_crossentropy],
                   metrics=[metrics.categorical_accuracy])
     model.summary()
+    return model
