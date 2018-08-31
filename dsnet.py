@@ -72,10 +72,23 @@ def dense_net(img_input, blocks):
     x = dense_block(x, blocks[0])
     x = transition_block(x, 0.5)
     x = dense_block(x, blocks[1])
+
+    o1 = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5)(x)
+    o1 = layers.GlobalMaxPooling2D()(o1)
+
     x = transition_block(x, 0.5)
     x = dense_block(x, blocks[2])
     x = transition_block(x, 0.5)
     x = dense_block(x, blocks[3])
+
+    o2 = None
+    if len(blocks) >= 4:
+        o2 = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5)(x)
+        o2 = layers.GlobalMaxPooling2D()(o2)
+
+        x = transition_block(x, 0.5)
+        x = dense_block(x, blocks[4])
+
     x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5)(x)
     x = layers.GlobalMaxPooling2D()(x)
-    return x
+    return x, o1, o2
