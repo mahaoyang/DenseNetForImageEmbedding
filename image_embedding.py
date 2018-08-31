@@ -10,7 +10,7 @@ from dsnet import dense_net
 
 def ime_model(lr=0.001, shape=(64, 64, 3)):
     inputs = layers.Input(shape=shape)
-    base = dense_net(img_input=inputs, blocks=[4, 8, 8, 16, 16])
+    base = dense_net(img_input=inputs, blocks=[4, 8, 16, 16, 8])
 
     o1 = base[1]
     o1 = layers.Dropout(0.5)(o1)
