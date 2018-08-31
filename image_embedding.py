@@ -31,7 +31,7 @@ def ime_model(lr=0.001, shape=(64, 64, 3)):
     opti = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 
     model.compile(optimizer=opti,
-                  loss=[losses.categorical_crossentropy, losses.categorical_crossentropy, losses.mean_squared_error,
+                  loss=[losses.mean_absolute_error, losses.categorical_crossentropy, losses.mean_absolute_error,
                         losses.categorical_crossentropy],
                   metrics=[metrics.categorical_accuracy])
     model.summary()
