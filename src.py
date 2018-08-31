@@ -8,17 +8,16 @@ weights = 'DenseNet.h5'
 path = 'D:/lyb/'
 
 
-class PWNN():
+class Ime:
     def __init__(self, base_path, model_weights):
         self.base_path = base_path
         self.model_weights = model_weights
 
     @staticmethod
-    def model(lr=0.000001, epochs=10, batch_size=23):
+    def model(lr=0.000001):
         return ime_model(lr=lr, shape=img_size)
 
     def train(self, lr=0.000001, epochs=10, batch_size=23, load_w=0):
-        model_weights = copy.deepcopy(self.model_weights)
         data = data2array(self.base_path)
         train_list = data['train_list']
         train_num = 30000
@@ -52,13 +51,13 @@ class PWNN():
         print(ev)
         return model_weights
 
-    def submit(self, model_weights):
+    def submit(self):
         data = data2array(self.base_path)
         test_list_array = data['test_list_array']
         test_list_name = data['test_list_name']
         model = self.model()
-        model.load_weights(model_weights)
-        _, __, predict = model.predict(np.array(test_list_array))
+        model.load_weights(self.model_weights)
+        _, __, ___, predict = model.predict(np.array(test_list_array))
         submit_lines = []
         n = 0
         for i in predict:
@@ -72,3 +71,10 @@ class PWNN():
             submit += '%s\t%s\n' % (i[0], i[1])
         with open('submit.txt', 'w') as f:
             f.write(submit)
+
+
+ime = Ime(base_path=path, model_weights=weights)
+
+ime.train(lr=0.01, epochs=3, batch_size=23, load_w=0)
+
+# ime.submit()
