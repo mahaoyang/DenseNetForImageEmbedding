@@ -43,20 +43,20 @@ class Ime:
         if load_w:
             model.load_weights(self.model_weights)
 
-        reduce_lr_loss = keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
-        tb_cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=1, write_graph=True, write_images=False,
-                                            embeddings_freq=0, embeddings_layer_names=None, embeddings_metadata=None)
-        es_cb = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.09, patience=5, verbose=0, mode='auto')
-        cbks = []
-        cbks.append(tb_cb)
-        cbks.append(es_cb)
-        cbks.append(reduce_lr_loss)
+        # reduce_lr_loss = keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
+        # tb_cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=1, write_graph=True, write_images=False,
+        #                                     embeddings_freq=0, embeddings_layer_names=None, embeddings_metadata=None)
+        # es_cb = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.09, patience=5, verbose=0, mode='auto')
+        # cbks = []
+        # cbks.append(tb_cb)
+        # cbks.append(es_cb)
+        # cbks.append(reduce_lr_loss)
 
         model.fit(x=x[:train_num], y=[y1[:train_num], y2[:train_num], y3[:train_num], y4[:train_num]],
                   validation_data=[x[train_num:-val_num],
                                    [y1[train_num:-val_num], y2[train_num:-val_num], y3[train_num:-val_num],
                                     y4[train_num:-val_num]]],
-                  epochs=epochs, batch_size=batch_size, callbacks=cbks)
+                  epochs=epochs, batch_size=batch_size)  # , callbacks=cbks
         model_weights = copy.deepcopy(self.model_weights)
         model.save(self.model_weights)
         ev = model.evaluate(x=x[-val_num:], y=[y1[-val_num:], y2[-val_num:], y3[-val_num:], y4[-val_num:]],
@@ -89,6 +89,6 @@ class Ime:
 
 ime = Ime(base_path=path, model_weights=weights)
 
-ime.train(lr=0.01, epochs=3, batch_size=123, load_w=1)
+ime.train(lr=0.00000001, epochs=500, batch_size=123, load_w=1)
 
 # ime.submit()
