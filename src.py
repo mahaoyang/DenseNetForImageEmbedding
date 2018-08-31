@@ -89,6 +89,6 @@ class Ime:
 
 ime = Ime(base_path=path, model_weights=weights)
 
-ime.train(lr=0.00000001, epochs=500, batch_size=123, load_w=1)
+ime.train(lr=100, epochs=1, batch_size=233, load_w=0)
 
 # ime.submit()
