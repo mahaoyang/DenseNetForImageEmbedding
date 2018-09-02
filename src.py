@@ -52,14 +52,14 @@ class Ime:
         # cbks.append(es_cb)
         # cbks.append(reduce_lr_loss)
 
-        model.fit(x=x[:train_num], y=[y1[:train_num], y2[:train_num], y3[:train_num], y4[:train_num]],
+        model.fit(x=x[:train_num], y=[y1[:train_num], y2[:train_num],  y4[:train_num]],
                   validation_data=[x[train_num:-val_num],
-                                   [y1[train_num:-val_num], y2[train_num:-val_num], y3[train_num:-val_num],
+                                   [y1[train_num:-val_num], y2[train_num:-val_num],
                                     y4[train_num:-val_num]]],
                   epochs=epochs, batch_size=batch_size)  # , callbacks=cbks
         model_weights = copy.deepcopy(self.model_weights)
         model.save(self.model_weights)
-        ev = model.evaluate(x=x[-val_num:], y=[y1[-val_num:], y2[-val_num:], y3[-val_num:], y4[-val_num:]],
+        ev = model.evaluate(x=x[-val_num:], y=[y1[-val_num:], y2[-val_num:],  y4[-val_num:]],
                             batch_size=200)
         ev = dict(zip(model.metrics_names, ev))
         print(ev)
@@ -71,7 +71,7 @@ class Ime:
         test_list_name = data['test_list_name']
         model = self.model()
         model.load_weights(self.model_weights)
-        _, __, ___, predict = model.predict(np.array(test_list_array))
+        _, __,  predict = model.predict(np.array(test_list_array))
         submit_lines = []
         n = 0
         for i in predict:
@@ -89,6 +89,6 @@ class Ime:
 
 ime = Ime(base_path=path, model_weights=weights)
 
-# ime.train(lr=0.0000001, epochs=300, batch_size=233, load_w=1)
+ime.train(lr=10, epochs=1, batch_size=233, load_w=1)
 
-ime.submit()
+# ime.submit()
