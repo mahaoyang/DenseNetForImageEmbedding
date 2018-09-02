@@ -1,5 +1,6 @@
 from keras.preprocessing.image import load_img, img_to_array
 import pandas as pd
+import numpy as np
 import pickle
 import os
 
@@ -30,8 +31,27 @@ def data2array_b(path):
         attributes_per_class = dict()
         for i in f.readlines():
             ii = i.strip('\n').split('\t')
-            attributes_per_class[ii[0]] = ii[1:]
+            ii_1 = ii[1:]
+            for iii_index in range(0, len(ii_1)):
+                iii = float(ii_1[iii_index])
+                if iii > 1:
+                    iii = iii / 10
+                    print(ii[0], ii_1.index(str(int(iii))), iii)
+                ii_1[iii_index] = iii
+            attributes_per_class[ii[0]] = ii_1
+
     print('attributes_per_class', len(attributes_per_class))
+
+    attributes_per_classf_330 = []
+    for i in label_map:
+        three0 = []
+        for ii in attributes_per_class[i]:
+            three = np.zeros(11).astype('int32').tolist()
+            index = float(ii) / 0.1
+            three[int(index)] = 1
+            three0.extend(three)
+        attributes_per_classf_330.append(three0)
+    print('attributes_per_classf_330', len(attributes_per_classf_330))
 
     with open(path + 'DatasetA_train_20180813/attribute_list.txt', 'r') as f:
         attribute_list = dict()
@@ -96,8 +116,8 @@ def data2array_b(path):
         test_list_array.append(test_list[i]['img_array'])
 
     data = {'label_list': label_list, 'label_map': label_map, 'train_list': train_list,
-            'attributes_per_class': attributes_per_class, 'attribute_list': attribute_list,
-            'class_wordembeddings': class_wordembeddings, 'test_list': test_list, }
+            'attributes_per_class': attributes_per_class, 'attributes_per_classf_330': attributes_per_classf_330,
+            'attribute_list': attribute_list, 'class_wordembeddings': class_wordembeddings, 'test_list': test_list, }
     reverse_label_list = {v: k for k, v in data['label_list'].items()}
     data['reverse_label_list'] = reverse_label_list
     data['test_list_name'] = test_list_name
