@@ -30,7 +30,7 @@ class Ime:
             y1.append(train_list[i]['attributes_per_classf_330_num'])
             # _y1 = np.zeros(230)
             # _y1[train_list[i]['label_array']] = 1
-            _y2 = train_list['label_map'].index(train_list[i]['label'])
+            _y2 = data['label_map'].index(train_list[i]['label'])
             y2.append(_y2)
             # y3.append(train_list[i]['label_real_name_class_wordembeddings'])
 
@@ -40,8 +40,8 @@ class Ime:
         # y3 = np.array(y3)
         # y4 = copy.deepcopy(y2)
 
-        y1 = keras.utils.np_utils.to_categorical(y1, 218)
-        y2 = keras.utils.np_utils.to_categorical(y2, 230)
+        y1 = keras.utils.np_utils.to_categorical(y1)
+        y2 = keras.utils.np_utils.to_categorical(y2)
         # y4 = keras.utils.np_utils.to_categorical(y4, 230)
 
         data_gen = keras.preprocessing.image.ImageDataGenerator(
