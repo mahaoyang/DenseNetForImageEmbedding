@@ -14,7 +14,7 @@ def ime_model(lr=0.001, shape=(64, 64, 3)):
 
     o1 = base[1]
     o1 = layers.Dropout(0.5)(o1)
-    o1 = layers.Dense(218, activation='softmax')(o1)
+    o1 = layers.Dense(219, activation='softmax')(o1)
 
     o2 = base[0]
     o2 = layers.Dropout(0.5)(o2)
