@@ -40,8 +40,8 @@ class Ime:
         # y3 = np.array(y3)
         # y4 = copy.deepcopy(y2)
 
-        y1 = keras.utils.np_utils.to_categorical(y1, 219)
-        y2 = keras.utils.np_utils.to_categorical(y2, 230)
+        # y1 = keras.utils.np_utils.to_categorical(y1, 219)
+        # y2 = keras.utils.np_utils.to_categorical(y2, 230)
         # y4 = keras.utils.np_utils.to_categorical(y4, 230)
 
         data_gen = keras.preprocessing.image.ImageDataGenerator(
