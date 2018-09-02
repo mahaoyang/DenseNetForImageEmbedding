@@ -27,16 +27,16 @@ class Ime:
         y1, y2, y3 = [], [], []
         for i in train_list:
             x.append(train_list[i]['img_array'])
-            y1.append(train_list[i]['label_attribute'])
+            y1.append(train_list[i]['attributes_per_classf_330'])
             _y2 = np.zeros(230)
             _y2[train_list[i]['label_array']] = 1
             y2.append(_y2)
-            y3.append(train_list[i]['label_real_name_class_wordembeddings'])
+            # y3.append(train_list[i]['label_real_name_class_wordembeddings'])
 
         x = np.array(x)
         y1 = np.array(y1)
         y2 = np.array(y2)
-        y3 = np.array(y3)
+        # y3 = np.array(y3)
         y4 = copy.deepcopy(y2)
 
         model = self.model(lr=lr)
