@@ -14,23 +14,23 @@ def ime_model(lr=0.001, shape=(64, 64, 3)):
 
     o1 = base[1]
     o1 = layers.Dropout(0.5)(o1)
-    o1 = layers.Dense(230, activation='softmax')(o1)
+    o1 = layers.Dense(218, activation='softmax')(o1)
 
     o2 = base[0]
     o2 = layers.Dropout(0.5)(o2)
-    o2 = layers.Dense(330, activation='softmax')(o2)
+    o2 = layers.Dense(230, activation='softmax')(o2)
 
     # x = base[0]
     # o3 = layers.Dense(300, activation='elu')(x)
     # mg = layers.Concatenate(axis=1)([o1, o2, o3])
 
-    mg = layers.Concatenate(axis=1)([o1, o2])
-    o4 = layers.Activation('relu')(mg)
-    o4 = layers.BatchNormalization(axis=1, epsilon=1.001e-5)(o4)
-    o4 = layers.Dropout(0.5)(o4)
-    o4 = layers.Dense(230, activation='softmax')(o4)
+    # mg = layers.Concatenate(axis=1)([o1, o2])
+    # o4 = layers.Activation('relu')(mg)
+    # o4 = layers.BatchNormalization(axis=1, epsilon=1.001e-5)(o4)
+    # o4 = layers.Dropout(0.5)(o4)
+    # o4 = layers.Dense(230, activation='softmax')(o4)
 
-    model = Model(inputs=inputs, outputs=[o1, o2, o4])
+    model = Model(inputs=inputs, outputs=[o1, o2])
 
     opti = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
 

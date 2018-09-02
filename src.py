@@ -27,17 +27,32 @@ class Ime:
         y1, y2, y3 = [], [], []
         for i in train_list:
             x.append(train_list[i]['img_array'])
-            y2.append(train_list[i]['attributes_per_classf_330'])
-            _y1 = np.zeros(230)
-            _y1[train_list[i]['label_array']] = 1
-            y1.append(_y1)
+            y1.append(train_list[i]['attributes_per_classf_330_num'])
+            # _y1 = np.zeros(230)
+            # _y1[train_list[i]['label_array']] = 1
+            _y2 = train_list['label_map'].index(train_list[i]['label'])
+            y2.append(_y2)
             # y3.append(train_list[i]['label_real_name_class_wordembeddings'])
 
         x = np.array(x)
         y1 = np.array(y1)
         y2 = np.array(y2)
         # y3 = np.array(y3)
-        y4 = copy.deepcopy(y1)
+        # y4 = copy.deepcopy(y2)
+
+        y1 = keras.utils.np_utils.to_categorical(y1, 218)
+        y2 = keras.utils.np_utils.to_categorical(y2, 230)
+        # y4 = keras.utils.np_utils.to_categorical(y4, 230)
+
+        data_gen = keras.preprocessing.image.ImageDataGenerator(
+            featurewise_center=True, featurewise_std_normalization=True, rotation_range=20, width_shift_range=0.2,
+            height_shift_range=0.2, horizontal_flip=True)
+        data_gen.fit(x[:train_num], augment=True, rounds=1)
+
+        validation_generator = keras.preprocessing.image.ImageDataGenerator(
+            featurewise_center=True, featurewise_std_normalization=True, rotation_range=20, width_shift_range=0.2,
+            height_shift_range=0.2, horizontal_flip=True)
+        validation_generator.fit(x[train_num:-val_num])
 
         model = self.model(lr=lr)
         if load_w:
@@ -52,14 +67,14 @@ class Ime:
         # cbks.append(es_cb)
         # cbks.append(reduce_lr_loss)
 
-        model.fit(x=x[:train_num], y=[y1[:train_num], y2[:train_num],  y4[:train_num]],
-                  validation_data=[x[train_num:-val_num],
-                                   [y1[train_num:-val_num], y2[train_num:-val_num],
-                                    y4[train_num:-val_num]]],
-                  epochs=epochs, batch_size=batch_size)  # , callbacks=cbks
+        model.fit_generator(
+            data_gen.flow(x=x[:train_num], y=[y1[:train_num], y2[:train_num]], batch_size=batch_size),
+            steps_per_epoch=len(x), epochs=epochs, validation_data=validation_generator.flow(
+                x=x[train_num:-val_num], y=[y1[train_num:-val_num], y2[train_num:-val_num]],
+                batch_size=batch_size), validation_steps=800)  # , callbacks=cbks
         model_weights = copy.deepcopy(self.model_weights)
         model.save(self.model_weights)
-        ev = model.evaluate(x=x[-val_num:], y=[y1[-val_num:], y2[-val_num:],  y4[-val_num:]],
+        ev = model.evaluate(x=x[-val_num:], y=[y1[-val_num:], y2[-val_num:]],
                             batch_size=200)
         ev = dict(zip(model.metrics_names, ev))
         print(ev)
@@ -71,7 +86,7 @@ class Ime:
         test_list_name = data['test_list_name']
         model = self.model()
         model.load_weights(self.model_weights)
-        _, __,  predict = model.predict(np.array(test_list_array))
+        _, predict = model.predict(np.array(test_list_array))
         submit_lines = []
         n = 0
         for i in predict:

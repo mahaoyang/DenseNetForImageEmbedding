@@ -53,6 +53,13 @@ def data2array_b(path):
         attributes_per_classf_330.append(three0)
     print('attributes_per_classf_330', len(attributes_per_classf_330))
 
+    temp = []
+    for i in attributes_per_classf_330:
+        temp.append(str(i))
+    attributes_per_class_zuhe = list(set(temp))
+    for i in range(0,len(attributes_per_class_zuhe)):
+        attributes_per_class_zuhe[i] = eval(attributes_per_class_zuhe[i])
+
     with open(path + 'DatasetA_train_20180813/attribute_list.txt', 'r') as f:
         attribute_list = dict()
         for i in f.readlines():
@@ -81,7 +88,9 @@ def data2array_b(path):
             train_list[i]['label_real_name'] = label_list[label]
             train_list[i]['label_real_name_class_wordembeddings'] = class_wordembeddings[label_list[label]]
             train_list[i]['label_attribute'] = attributes_per_class[label]
-            train_list[i]['attributes_per_classf_330']=attributes_per_classf_330[label_map.index(label)]
+            train_list[i]['attributes_per_classf_330'] = attributes_per_classf_330[label_map.index(label)]
+            train_list[i]['attributes_per_classf_330_num'] = attributes_per_class_zuhe.index(
+                train_list[i]['attributes_per_classf_330'])
 
         with open('train_list.pickle', 'wb') as f:
             pickle.dump(train_list, f)
