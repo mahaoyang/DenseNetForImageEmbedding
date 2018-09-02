@@ -81,7 +81,7 @@ def data2array_b(path):
             train_list[i]['label_real_name'] = label_list[label]
             train_list[i]['label_real_name_class_wordembeddings'] = class_wordembeddings[label_list[label]]
             train_list[i]['label_attribute'] = attributes_per_class[label]
-            train_list[i]['attributes_per_classf_330']=attributes_per_classf_330[label_map.index(i)]
+            train_list[i]['attributes_per_classf_330']=attributes_per_classf_330[label_map.index(label)]
 
         with open('train_list.pickle', 'wb') as f:
             pickle.dump(train_list, f)
