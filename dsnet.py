@@ -82,7 +82,7 @@ def dense_net(img_input, blocks):
     x = dense_block(x, blocks[3])
 
     o2 = None
-    if len(blocks) >= 4:
+    if len(blocks) >= 5:
         o2 = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5)(x)
         o2 = layers.GlobalMaxPooling2D()(o2)
 
