@@ -154,7 +154,7 @@ class RawIme:
             height_shift_range=0.2, horizontal_flip=True)
         validation_generator.fit(x[train_num:-val_num])
 
-        model = self.model(lr=lr)
+        model = self.model(lr=lr)[0]
         if load_w:
             model.load_weights(self.model_weights)
 
@@ -183,9 +183,9 @@ class RawIme:
         data = data2array(self.base_path)
         test_list_array = data['test_list_array']
         test_list_name = data['test_list_name']
-        model = self.model()
+        model = self.model()[1]
         model.load_weights(self.model_weights)
-        _, predict = model.predict(np.array(test_list_array))
+        predict = model.predict(np.array(test_list_array))
         submit_lines = []
         n = 0
         for i in predict:
