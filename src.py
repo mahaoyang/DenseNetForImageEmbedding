@@ -170,12 +170,11 @@ class RawIme:
         model.fit_generator(
             data_gen.flow(x=x[:train_num], y=y1[:train_num], batch_size=batch_size),
             steps_per_epoch=len(x), epochs=epochs, validation_data=validation_generator.flow(
-                x=x[train_num:-val_num], y=[y1[train_num:-val_num], y2[train_num:-val_num]],
-                batch_size=batch_size), validation_steps=800)  # , callbacks=cbks
+                x=x[train_num:-val_num], y=y1[train_num:-val_num], batch_size=batch_size),
+            validation_steps=800)  # , callbacks=cbks
         model_weights = copy.deepcopy(self.model_weights)
         model.save(self.model_weights)
-        ev = model.evaluate(x=x[-val_num:], y=y1[-val_num:],
-                            batch_size=200)
+        ev = model.evaluate(x=x[-val_num:], y=y1[-val_num:], batch_size=200)
         ev = dict(zip(model.metrics_names, ev))
         print(ev)
         return model_weights
