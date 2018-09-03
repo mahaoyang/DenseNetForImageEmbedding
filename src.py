@@ -101,6 +101,7 @@ class Ime:
         with open('submit.txt', 'w') as f:
             f.write(submit)
 
+    @staticmethod
     def main(self):
         ime = Ime(base_path=path, model_weights=weights)
 
@@ -186,16 +187,24 @@ class RawIme:
         model = self.model()[1]
         model.load_weights(self.model_weights)
         predict = model.predict(np.array(test_list_array))
-        submit_lines = []
-        n = 0
-        for i in predict:
-            m = np.where(i == np.max(i))
-            max_index = int(m[0])
-            lable = data['label_map'][max_index]
-            submit_lines.append([test_list_name[n], lable])
-            n = n + 1
-        submit = ''
-        for i in submit_lines:
-            submit += '%s\t%s\n' % (i[0], i[1])
-        with open('submit.txt', 'w') as f:
-            f.write(submit)
+        # submit_lines = []
+        #         # n = 0
+        #         # for i in predict:
+        #         #     m = np.where(i == np.max(i))
+        #         #     max_index = int(m[0])
+        #         #     lable = data['label_map'][max_index]
+        #         #     submit_lines.append([test_list_name[n], lable])
+        #         #     n = n + 1
+        #         # submit = ''
+        #         # for i in submit_lines:
+        #         #     submit += '%s\t%s\n' % (i[0], i[1])
+        #         # with open('submit.txt', 'w') as f:
+        #         #     f.write(submit)
+
+    @staticmethod
+    def main():
+        ime = Ime(base_path=path, model_weights=weights)
+
+        ime.train(lr=10, epochs=1, batch_size=233, load_w=0)
+
+        # ime.submit()
