@@ -42,9 +42,9 @@ def ime_model(lr=0.001, shape=(64, 64, 3)):
     return model
 
 
-def raw_model(lr=0.001, shape=(64, 64, 3)):
+def raw_model(lr=0.001, shape=(64, 64, 3), weights='imagenet'):
     inputs = layers.Input(shape=shape)
-    base = applications.DenseNet121(input_tensor=inputs, weights='imagenet', include_top=False)
+    base = applications.DenseNet121(input_tensor=inputs, weights=weights, include_top=False)
     for i, layer in enumerate(base.layers):
         print(i, layer.name)
 
