@@ -45,12 +45,20 @@ def ime_model(lr=0.001, shape=(64, 64, 3)):
 def raw_model(lr=0.001, shape=(64, 64, 3)):
     inputs = layers.Input(shape=shape)
     base = applications.DenseNet121(input_tensor=inputs, weights='imagenet', include_top=False)
-    for i, layer in enumerate(base.layers):
+    for i, layer in enumerate(base.layers[:-7]):
         print(i, layer.name)
-    for layer in base.layers[:-21]:
+
+    for layer in base.layers[:-7]:
         layer.trainable = False
-    for layer in base.layers[-21:]:
+    for layer in base.layers[-7:]:
         layer.trainable = True
+    output = layers.GlobalMaxPooling2D()(base.output)
+    output = layers.Dense(230, activation='softmax')(output)
+    model = Model(inputs=inputs, outputs=output)
+    opti = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    model.compile(optimizer=opti, loss=losses.categorical_crossentropy, metrics=[metrics.categorical_accuracy])
+
+    layer_model = Model(inputs=model.input,outputs=model.layers[-3])
 
 
 if __name__ == '__main__':
