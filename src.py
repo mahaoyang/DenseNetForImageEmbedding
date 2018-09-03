@@ -102,7 +102,7 @@ class Ime:
             f.write(submit)
 
     @staticmethod
-    def main(self):
+    def main():
         ime = Ime(base_path=path, model_weights=weights)
 
         ime.train(lr=10, epochs=1, batch_size=233, load_w=0)
