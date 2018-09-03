@@ -61,9 +61,9 @@ def raw_model(lr=0.001, shape=(64, 64, 3)):
     for i, layer in enumerate(model.layers):
         print(i, layer.name)
 
-    layer_model = Model(inputs=model.input, outputs=base.output)
+    middle_layer_model = Model(inputs=model.input, outputs=base.output)
 
-    return model, layer_model
+    return model, middle_layer_model
 
 
 if __name__ == '__main__':
