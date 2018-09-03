@@ -208,3 +208,8 @@ class RawIme:
         rawime.train(lr=10, epochs=1, batch_size=233, load_w=0)
 
         # ime.submit()
+
+
+if __name__ == '__main__':
+    rawime = RawIme(base_path=path, model_weights=weights)
+    rawime.main()
