@@ -203,8 +203,8 @@ class RawIme:
 
     @staticmethod
     def main():
-        ime = Ime(base_path=path, model_weights=weights)
+        rawime = RawIme(base_path=path, model_weights=weights)
 
-        ime.train(lr=10, epochs=1, batch_size=233, load_w=0)
+        rawime.train(lr=10, epochs=1, batch_size=233, load_w=0)
 
         # ime.submit()
