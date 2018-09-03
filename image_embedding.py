@@ -4,13 +4,14 @@ from keras import losses
 from keras import metrics
 from keras import optimizers
 from keras.models import Model
+from keras import applications
 
 from dsnet import dense_net
 
 
 def ime_model(lr=0.001, shape=(64, 64, 3)):
     inputs = layers.Input(shape=shape)
-    base = dense_net(img_input=inputs, blocks=[8, 12, 24, 16])
+    base = dense_net(input_tensor=inputs, blocks=[8, 12, 24, 16])
 
     o1 = base[1]
     o1 = layers.Dropout(0.5)(o1)
@@ -41,5 +42,17 @@ def ime_model(lr=0.001, shape=(64, 64, 3)):
     return model
 
 
+def raw_model(lr=0.001, shape=(64, 64, 3)):
+    inputs = layers.Input(shape=shape)
+    base = applications.DenseNet121(input_tensor=inputs, weights='imagenet', include_top=False)
+    for i, layer in enumerate(base.layers):
+        print(i, layer.name)
+    for layer in base.layers[:-21]:
+        layer.trainable = False
+    for layer in base.layers[-21:]:
+        layer.trainable = True
+
+
 if __name__ == '__main__':
-    ime_model()
+    # ime_model()
+    raw_model()

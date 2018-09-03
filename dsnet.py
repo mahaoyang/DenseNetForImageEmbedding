@@ -59,9 +59,9 @@ def conv_block(x, growth_rate):
     return x
 
 
-def dense_net(img_input, blocks):
+def dense_net(input_tensor, blocks):
     bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
-    x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
+    x = layers.ZeroPadding2D(padding=((3, 3), (3, 3)))(input_tensor)
     x = layers.Conv2D(64, 7, strides=2, use_bias=False)(x)
     x = layers.BatchNormalization(
         axis=bn_axis, epsilon=1.001e-5)(x)
