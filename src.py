@@ -184,8 +184,10 @@ class RawIme:
         data = data2array(self.base_path)
         test_list_array = data['test_list_array']
         test_list_name = data['test_list_name']
-        model = self.model()[1]
-        model.load_weights(self.model_weights)
+        model = self.model()
+        model_230 = model[0]
+        model = model[0]
+        model_230.load_weights(self.model_weights)
         predict = model.predict(np.array(test_list_array))
         submit_lines = []
         lable_index = predict.argmax(1)
