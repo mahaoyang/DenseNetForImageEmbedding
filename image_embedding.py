@@ -53,10 +53,10 @@ def raw_model(lr=0.001, shape=(64, 64, 3)):
     # for layer in base.layers[-7:]:
     #    layer.trainable = True
     output = layers.GlobalMaxPooling2D()(base.output)
-    output = layers.Dense(230, activation='softmax')(output)
+    output = layers.Dense(30, activation='sigmoid')(output)
     model = Model(inputs=inputs, outputs=output)
     opti = optimizers.Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-    model.compile(optimizer=opti, loss=losses.categorical_crossentropy, metrics=[metrics.categorical_accuracy])
+    model.compile(optimizer=opti, loss=losses.mean_squared_error)
 
     for i, layer in enumerate(model.layers):
         print(i, layer.name)
