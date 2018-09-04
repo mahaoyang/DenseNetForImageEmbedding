@@ -204,9 +204,9 @@ class RawIme:
     def main():
         rawime = RawIme(base_path=path, model_weights=weights)
 
-        rawime.train(lr=0.0000001, epochs=1, batch_size=233, load_w=1)
+        # rawime.train(lr=0.0000001, epochs=1, batch_size=233, load_w=1)
 
-        # ime.submit()
+        rawime.submit()
 
 
 if __name__ == '__main__':
