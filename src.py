@@ -5,7 +5,7 @@ import copy
 import keras
 
 img_size = (64, 64, 3)
-weights = 'DenseNet.h5'
+weights = 'DenseNet_2.h5'
 path = 'D:/lyb/'
 
 
@@ -206,7 +206,7 @@ class RawIme:
     def main():
         rawime = RawIme(base_path=path, model_weights=weights)
 
-        rawime.train(lr=0.0000001, epochs=1, batch_size=233, load_w=1)
+        rawime.train(lr=0.0001, epochs=1, batch_size=233, load_w=0)
 
         rawime.submit()
 

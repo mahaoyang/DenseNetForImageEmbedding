@@ -48,10 +48,10 @@ def raw_model(lr=0.001, shape=(64, 64, 3)):
     for i, layer in enumerate(base.layers):
         print(i, layer.name)
 
-    for layer in base.layers[:-7]:
-        layer.trainable = False
-    for layer in base.layers[-7:]:
-        layer.trainable = True
+    # for layer in base.layers[:-7]:
+    #    layer.trainable = False
+    # for layer in base.layers[-7:]:
+    #    layer.trainable = True
     output = layers.GlobalMaxPooling2D()(base.output)
     output = layers.Dense(230, activation='softmax')(output)
     model = Model(inputs=inputs, outputs=output)
