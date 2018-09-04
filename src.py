@@ -128,20 +128,20 @@ class RawIme:
         y1, y2, y3 = [], [], []
         for i in train_list:
             x.append(train_list[i]['img_array'])
-            y1.append(train_list[i]['attributes_per_classf_330_num'])
+            y2.append(train_list[i]['attributes_per_classf_330_num'])
             # _y1 = np.zeros(230)
             # _y1[train_list[i]['label_array']] = 1
-            _y2 = data['label_map'].index(train_list[i]['label'])
-            y2.append(_y2)
+            _y1 = data['label_map'].index(train_list[i]['label'])
+            y1.append(_y1)
             # y3.append(train_list[i]['label_real_name_class_wordembeddings'])
 
         x = np.array(x)
         y1 = np.array(y1)
-        y2 = np.array(y2)
+        # y2 = np.array(y2)
         # y3 = np.array(y3)
         # y4 = copy.deepcopy(y2)
 
-        # y1 = keras.utils.np_utils.to_categorical(y1, 219)
+        y1 = keras.utils.np_utils.to_categorical(y1, 230)
         # y2 = keras.utils.np_utils.to_categorical(y2, 230)
         # y4 = keras.utils.np_utils.to_categorical(y4, 230)
 
@@ -187,25 +187,24 @@ class RawIme:
         model = self.model()[1]
         model.load_weights(self.model_weights)
         predict = model.predict(np.array(test_list_array))
-        # submit_lines = []
-        #         # n = 0
-        #         # for i in predict:
-        #         #     m = np.where(i == np.max(i))
-        #         #     max_index = int(m[0])
-        #         #     lable = data['label_map'][max_index]
-        #         #     submit_lines.append([test_list_name[n], lable])
-        #         #     n = n + 1
-        #         # submit = ''
-        #         # for i in submit_lines:
-        #         #     submit += '%s\t%s\n' % (i[0], i[1])
-        #         # with open('submit.txt', 'w') as f:
-        #         #     f.write(submit)
+        submit_lines = []
+        lable_index = predict.argmax(1)
+        n = 0
+        for i in lable_index:
+            lable = data['label_map'][i]
+            submit_lines.append([test_list_name[n], lable])
+            n = n + 1
+        submit = ''
+        for i in submit_lines:
+            submit += '%s\t%s\n' % (i[0], i[1])
+        with open('submit.txt', 'w') as f:
+            f.write(submit)
 
     @staticmethod
     def main():
         rawime = RawIme(base_path=path, model_weights=weights)
 
-        rawime.train(lr=10, epochs=1, batch_size=233, load_w=0)
+        rawime.train(lr=0.0000001, epochs=3, batch_size=233, load_w=1)
 
         # ime.submit()
 
