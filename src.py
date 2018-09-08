@@ -5,6 +5,7 @@ import xgboost as xgb
 import copy
 import keras
 
+np.random.seed(365371)
 img_size = (64, 64, 3)
 weights = 'DenseNet_2.h5'
 path = 'D:/lyb/'
@@ -137,12 +138,12 @@ class RawIme:
             # y3.append(train_list[i]['label_real_name_class_wordembeddings'])
 
         x = np.array(x)
-        y1 = np.array(y1)
+        y1_ = np.array(y1)
         # y2 = np.array(y2)
         # y3 = np.array(y3)
         # y4 = copy.deepcopy(y2)
 
-        y1 = keras.utils.np_utils.to_categorical(y1, 230)
+        y1 = keras.utils.np_utils.to_categorical(y1_, 230)
         # y2 = keras.utils.np_utils.to_categorical(y2, 230)
         # y4 = keras.utils.np_utils.to_categorical(y4, 230)
 
@@ -171,15 +172,22 @@ class RawIme:
 
         model.fit_generator(
             data_gen.flow(x=x[:train_num], y=y1[:train_num], batch_size=batch_size),
-            steps_per_epoch=len(x), epochs=epochs, validation_data=validation_generator.flow(
+            steps_per_epoch=train_num/300, epochs=epochs, validation_data=validation_generator.flow(
                 x=x[train_num:-val_num], y=y1[train_num:-val_num], batch_size=batch_size),
             validation_steps=800)  # , callbacks=cbks
         model_weights = copy.deepcopy(self.model_weights)
         model.save(self.model_weights)
-        ev = model.evaluate(x=x[-val_num:], y=y1[-val_num:], batch_size=200)
-        ev = dict(zip(model.metrics_names, ev))
+        # ev = model.evaluate(x=x[-val_num:], y=y1[-val_num:], batch_size=200)
+        # ev = dict(zip(model.metrics_names, ev))
+        n = 0
+        c = 0
+        for i in model.predict(x=x[-val_num:]):
+            ii = np.argmax(i)
+            if ii == y1_[n]:
+                c += 1
+        ev = float(c)/val_num
         print(ev)
-        return model_weights
+        # return model_weights
 
     def train_xgb(self):
         data = data2array(self.base_path)
@@ -190,12 +198,12 @@ class RawIme:
         y1, y2, y3 = [], [], []
         for i in train_list:
             x.append(train_list[i]['img_array'])
-            y2.append(train_list[i]['attributes_per_classf_330_num'])
+            # y2.append(train_list[i]['attributes_per_classf_330_num'])
             # _y1 = np.zeros(230)
             # _y1[train_list[i]['label_array']] = 1
             _y1 = data['label_map'].index(train_list[i]['label'])
             y1.append(_y1)
-            # y3.append(train_list[i]['label_real_name_class_wordembeddings'])
+            # y1.append(train_list[i]['label_real_name_class_wordembeddings'])
         x = np.array(x)
         y1 = np.array(y1)
         model = self.model()
@@ -209,22 +217,22 @@ class RawIme:
             'objective': 'multi:softmax',
             'num_class': 230,  # 类数，与 multisoftmax 并用
             'gamma': 0.05,  # 在树的叶子节点下一个分区的最小损失，越大算法模型越保守 。[0:]
-            'max_depth': 230,  # 构建树的深度 [1:]
+            'max_depth': 24,  # 构建树的深度 [1:]
             # 'lambda':450,  # L2 正则项权重
             'subsample': 0.4,  # 采样训练数据，设置为0.5，随机选择一般的数据实例 (0:1]
             'colsample_bytree': 0.7,  # 构建树树时的采样比率 (0:1]
             # 'min_child_weight':12, # 节点的最少特征数
             'silent': 1,
             'eta': 0.05,  # 如同学习率
-            'seed': 710,
-            'nthread': 15,  # cpu 线程数,根据自己U的个数适当调整
+            'seed': 233,
+            # 'nthread': 15,  # cpu 线程数,根据自己U的个数适当调整
+            'eval_metric': ['merror'],
         }
         plst = params
         # Using 10000 rows for early stopping.
         offset = 50000  # 训练集中数据60000，划分50000用作训练，10000用作验证
 
         num_rounds = 200  # 迭代你次数
-
 
         # 划分训练集与验证集
         xgtrain = xgb.DMatrix(predict[:train_num], y1[:train_num])
@@ -235,10 +243,9 @@ class RawIme:
 
         # training model
         # early_stopping_rounds 当设置的迭代次数较大时，early_stopping_rounds 可在一定的迭代次数内准确率没有提升就停止训练
-        model_xgb = xgb.train(plst, xgtrain, num_rounds, watchlist, early_stopping_rounds=100)
+        model_xgb = xgb.train(plst, xgtrain, num_rounds, watchlist, early_stopping_rounds=10)
         # model.save_model('./model/xgb.model') # 用于存储训练出的模型
         model_xgb.save_model('xgb.model')
-
 
     def submit(self):
         data = data2array(self.base_path)
@@ -268,12 +275,12 @@ class RawIme:
     def main():
         rawime = RawIme(base_path=path, model_weights=weights)
 
-        rawime.train(lr=0.0001, epochs=1, batch_size=233, load_w=1)
+        rawime.train(lr=0.0001, epochs=10, batch_size=233, load_w=0)
 
         # rawime.submit()
 
 
 if __name__ == '__main__':
     rawime = RawIme(base_path=path, model_weights=weights)
-    # rawime.main()
-    rawime.train_xgb()
+    rawime.main()
+    # rawime.train_xgb()
