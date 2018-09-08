@@ -275,7 +275,7 @@ class RawIme:
     def main():
         rawime = RawIme(base_path=path, model_weights=weights)
 
-        rawime.train(lr=0.0001, epochs=10, batch_size=233, load_w=0)
+        rawime.train(lr=0.0001, epochs=15, batch_size=233, load_w=0)
 
         # rawime.submit()
 
