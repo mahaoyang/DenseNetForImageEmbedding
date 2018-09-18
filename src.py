@@ -8,7 +8,7 @@ import keras
 np.random.seed(365371)
 img_size = (64, 64, 3)
 weights = 'DenseNet_2.h5'
-path = 'D:/lyb/'
+path = 'C:/Users/99263/Downloads/lyb/'
 
 
 class Ime:
