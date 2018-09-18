@@ -27,6 +27,14 @@ def data2array_b(path):
             class_wordembeddings[ii[0]] = ii[1:]
     print('class_wordembeddings', len(class_wordembeddings))
 
+    with open('glove.6b.50d.txt', 'r', encoding='utf-8') as f:
+        gbd = dict()
+        for i in f.readlines():
+            ii = i.strip('\n').split(' ')
+            gbd[ii[0]] = ii[1:]
+    for i in class_wordembeddings:
+        class_wordembeddings[i] = gbd[i]
+
     with open(path + 'DatasetA_train_20180813/attributes_per_class.txt', 'r') as f:
         attributes_per_class = dict()
         for i in f.readlines():
@@ -57,7 +65,7 @@ def data2array_b(path):
     for i in attributes_per_classf_330:
         temp.append(str(i))
     attributes_per_class_zuhe = list(set(temp))
-    for i in range(0,len(attributes_per_class_zuhe)):
+    for i in range(0, len(attributes_per_class_zuhe)):
         attributes_per_class_zuhe[i] = eval(attributes_per_class_zuhe[i])
 
     with open(path + 'DatasetA_train_20180813/attribute_list.txt', 'r') as f:
@@ -149,3 +157,4 @@ def data2array(path):
 
 if __name__ == '__main__':
     data2array(base_path)
+    # data2array_b(base_path)
