@@ -4,7 +4,7 @@ import numpy as np
 import pickle
 import os
 
-base_path = 'D:/lyb/'
+base_path = 'C:/lyb/'
 
 
 # base_path = '/Users/mahaoyang/Downloads/'
