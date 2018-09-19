@@ -32,19 +32,19 @@ def attention_2d_block(inputs):
 
 
 def augm(array):
-    flag = int(random.randint(0, 7)/7)
+    flag = int(random.randint(0, 6)/7)
     if flag == 0:
         a = image.random_rotation(array, 180)
     if flag == 1:
         a = image.random_shift(array, -0.3, 0.3)
     if flag == 2:
-        a = image.random_shear(array, 180)
+        a = image.random_shear(array, 90)
     if flag == 3:
         a = image.random_zoom(array, (0.7, 1))
     if flag == 4:
         a = image.random_channel_shift(array, 0.05)
     if flag == 5:
-        a = image.random_brightness(array, (0.7, 1))
+        a = image.random_brightness(array, (0.1, 0.8))
     if flag == 6:
         a = img_pca(array)
     return a
@@ -54,7 +54,7 @@ def dgen(data, batch_size):
     while 1:
         x, y = [], []
         for i in range(batch_size):
-            index = random.randint(0, len(data))
+            index = random.randint(0, len(data)-1)
             va = data[index]
             x.append(va[0])
             x.append(augm(va[0]))
