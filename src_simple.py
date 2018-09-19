@@ -17,7 +17,7 @@ import random
 
 np.random.seed(123)
 img_size = (64, 64, 3)
-weights = 'DenseNet121.h5'
+weights = 'DenseNet121_1.h5'
 
 path = 'C:/Users/99263/Downloads/lyb/'
 
@@ -104,13 +104,13 @@ class MixNN(object):
         #           batch_size=batch_size)
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
-        model.load_weights(self.model_weights)
+        # model.load_weights(self.model_weights)
         model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
                             validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
         model.save(self.model_weights)
 
         # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
-        eva = model.evaluate(x=x[val_num:], y=wx[val_num:])
+        eva = model.evaluate_generator(dgen(np.array(z[val_num:]), batch_size=batch_size))
         print(eva)
         return model
 
@@ -133,7 +133,7 @@ def res_dense_block(inputs, dim, activation='linear'):
 
 def model_mix(lr):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
-    base_model = applications.Xception(input_tensor=inputs, weights=None, include_top=False)
+    base_model = applications.DenseNet201(input_tensor=inputs, weights=None, include_top=False)
     x = base_model.output
     # x = layers.GaussianDropout(0.01)(x)
     img_features = layers.Flatten()(x)
@@ -174,4 +174,4 @@ def model_mix(lr):
 
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-0, 30, 50)
+    nn.train(1e-0, epochs=30, batch_size=50)
