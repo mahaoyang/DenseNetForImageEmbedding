@@ -10,6 +10,7 @@ from keras.layers.normalization import BatchNormalization
 import keras
 from keras.preprocessing.image import load_img, img_to_array
 from keras import layers
+from keras import applications
 from keras.layers import Dense, Activation, Dropout, Embedding
 from keras.optimizers import Adam, RMSprop
 from keras import losses
@@ -281,26 +282,29 @@ class MixNN(SimpleNN):
         train_num = 36000
         x = []
         wx = []
-        y = []
+        # y = []
         for i in train_list:
             x.append(train_list[i]['img_array'])
             wx.append(train_list[i]['label_real_name_class_wordembeddings'])
-            temp = np.zeros((230,))
-            temp[train_list[i]['label_array']] = 1
-            y.append(temp)
+            # temp = np.zeros((230,))
+            # temp[train_list[i]['label_array']] = 1
+            # y.append(temp)
         x = np.array(x)
         wx = np.array(wx).astype('float64')
-        y = np.array(y)
+        # y = np.array(y)
 
         # x = np.random.shuffle(x)
         # wx = np.random.shuffle(wx)
         # y = np.random.shuffle(y)
 
-        model.fit(x=x[:train_num], y=[y[:train_num], wx[:train_num]], validation_split=0.2, epochs=epochs,
+        # model.fit(x=x[:train_num], y=[y[:train_num], wx[:train_num]], validation_split=0.2, epochs=epochs,
+        #           batch_size=batch_size)
+        model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
                   batch_size=batch_size)
         model.save(self.model_weights)
 
-        eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
+        # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
+        eva = model.evaluate(x=x[train_num:], y=wx[train_num:])
         print(eva)
         return model
 
@@ -323,7 +327,7 @@ def res_dense_block(inputs, dim, activation='linear'):
 
 def model_mix(lr):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
-    base_model = DenseNet121(input_tensor=inputs, weights=None, include_top=False)
+    base_model = applications.Xception(input_tensor=inputs, weights=None, include_top=False)
     x = base_model.output
     # x = layers.GaussianDropout(0.01)(x)
     img_features = Flatten()(x)
@@ -333,28 +337,31 @@ def model_mix(lr):
     # w01 = res_dense_block(w00, 12)
     # w02 = res_dense_block(w01, 24)
     # w_out = res_dense_block(w02, 50)
-    w0 = res_dense_block(img_features, 8)
-    w1 = res_dense_block(w0, 16)
-    w2 = res_dense_block(w1, 32)
-    w_out = res_dense_block(w2, 50)
-    w2 = w_out
-    w3 = res_dense_block(w2, 64)
+    # w0 = res_dense_block(img_features, 12)
+    # w1 = res_dense_block(w0, 12)
+    # w2 = res_dense_block(w1, 24)
+    w3 = res_dense_block(img_features, 50)
+    w_out = w3
+    # w2 = w_out
+    # w3 = res_dense_block(w2, 64)
     # w4 = res_dense_block(w3, 128)
 
     # mg = layers.Concatenate()([w3, w_out])
     # mg = layers.BatchNormalization()(mg)
 
-    p0 = attention_2d_block(w3)
-    p0 = layers.BatchNormalization()(p0)
-    p0 = layers.GaussianNoise(0.1)(p0)
-    p0 = layers.Concatenate()([p0, w3])
+    # p0 = attention_2d_block(img_features)
+    # p0 = layers.BatchNormalization()(p0)
+    # p0 = layers.GaussianNoise(0.1)(p0)
+    # p0 = layers.Concatenate()([p0, w3])
 
-    predictions = Dense(230, activation='softmax')(p0)
+    # predictions = Dense(230, activation='softmax')(img_features)
 
     opti = Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-    model = Model(inputs=base_model.input, outputs=[predictions, w_out])
-    model.compile(optimizer=opti, loss=[losses.categorical_crossentropy, losses.mean_squared_logarithmic_error],
-                  metrics=['accuracy'])
+    # model = Model(inputs=base_model.input, outputs=[predictions, w_out])
+    # model.compile(optimizer=opti, loss=[losses.categorical_crossentropy, losses.mean_squared_logarithmic_error],
+    #               metrics=['accuracy'])
+    model = Model(inputs=base_model.input, outputs=w_out)
+    model.compile(optimizer=opti, loss=losses.mean_squared_logarithmic_error, metrics=['accuracy'])
     model.summary()
     return model
 
