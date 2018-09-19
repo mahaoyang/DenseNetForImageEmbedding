@@ -32,7 +32,7 @@ def attention_2d_block(inputs):
 
 
 def augm(array):
-    flag = int(random.randint(0, 6)/7)
+    flag = int(random.randint(0, 5)/6)
     if flag == 0:
         a = image.random_rotation(array, 180)
     if flag == 1:
@@ -42,11 +42,11 @@ def augm(array):
     if flag == 3:
         a = image.random_zoom(array, (0.7, 1))
     if flag == 4:
-        a = image.random_channel_shift(array, 0.05)
+        a = img_pca(array)
     if flag == 5:
         a = image.random_brightness(array, (0.05, 0.8))
-    if flag == 6:
-        a = img_pca(array)
+    # if flag == 6:
+    #     a = image.random_channel_shift(array, 0.05)
     return a
 
 
@@ -78,7 +78,7 @@ class MixNN(object):
         model = self.model(lr)
         data = data2array(self.base_path)
         train_list = data['train_list']
-        train_num = 29000
+        train_num = 75000
         val_num = 2000
         x = []
         wx = []
@@ -104,7 +104,7 @@ class MixNN(object):
         #           batch_size=batch_size)
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
-        model.load_weights(self.model_weights)
+        # model.load_weights(self.model_weights)
         model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
                             validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
         model.save(self.model_weights)
