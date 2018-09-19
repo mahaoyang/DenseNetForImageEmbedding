@@ -6,11 +6,14 @@ from keras import layers
 from keras import applications
 from keras.optimizers import Adam, RMSprop
 from keras import losses
+from keras.preprocessing import image
 from keras import metrics
 import numpy as np
 import pickle
 from data2array import data2array
+from augmentation import img_pca
 import copy
+import random
 
 np.random.seed(123)
 img_size = (64, 64, 3)
@@ -28,10 +31,37 @@ def attention_2d_block(inputs):
     return output_attention_mul
 
 
+def augm(array):
+    a = image.random_rotation(array, 180)
+    b = image.random_shift(array, -0.3, 0.3)
+    c = image.random_shear(array, 180)
+    d = image.random_zoom(array, (0.7, 1))
+    e = image.random_channel_shift(array, 0.05)
+    f = image.random_brightness(array, 0.2)
+    g = img_pca(array)
+    return [a, b, c, d, e, f, g]
+
+
+def dgen(data, batch_size):
+    while 1:
+        x, y = [], []
+        for i in range(batch_size):
+            index = random.randint(0, len(data))
+            va = data[index]
+            x.append(va[0])
+            x.extend(augm(va[0]))
+            for ii in range(8):
+                y.append(va[1])
+        x = np.array(x)
+        y = np.array(y)
+        yield x, y
+
+
 class MixNN(object):
     def __init__(self, base_path, model_weights):
         self.base_path = base_path
         self.model_weights = model_weights
+
     @staticmethod
     def model(lr):
         return model_mix(lr)
@@ -40,18 +70,22 @@ class MixNN(object):
         model = self.model(lr)
         data = data2array(self.base_path)
         train_list = data['train_list']
-        train_num = 36000
+        train_num = 29000
+        val_num = 2000
         x = []
         wx = []
+        z = []
         # y = []
         for i in train_list:
-            x.append(train_list[i]['img_array'])
-            wx.append(train_list[i]['label_real_name_class_wordembeddings'])
+            # x.append(train_list[i]['img_array'])
+            # wx.append(train_list[i]['label_real_name_class_wordembeddings'])
+            z.append([np.array(train_list[i]['img_array']),
+                      np.array(train_list[i]['label_real_name_class_wordembeddings']).astype('float64')])
             # temp = np.zeros((230,))
             # temp[train_list[i]['label_array']] = 1
             # y.append(temp)
-        x = np.array(x)
-        wx = np.array(wx).astype('float64')
+        # x = np.array(x)
+        # wx = np.array(wx).astype('float64')
         # y = np.array(y)
 
         # x = np.random.shuffle(x)
@@ -60,12 +94,14 @@ class MixNN(object):
 
         # model.fit(x=x[:train_num], y=[y[:train_num], wx[:train_num]], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
-        model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
-                  batch_size=batch_size)
+        # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
+        #           batch_size=batch_size)
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=5,
+                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
         model.save(self.model_weights)
 
         # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
-        eva = model.evaluate(x=x[train_num:], y=wx[train_num:])
+        eva = model.evaluate(x=x[val_num:], y=wx[val_num:])
         print(eva)
         return model
 
@@ -130,4 +166,3 @@ def model_mix(lr):
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
     nn.train(1e-0, 30, 100)
-
