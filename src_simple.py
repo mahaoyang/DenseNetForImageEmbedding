@@ -32,7 +32,7 @@ def attention_2d_block(inputs):
 
 
 def augm(array):
-    flag = int(random.randint()/7)
+    flag = int(random.randint(0, 7)/7)
     if flag == 0:
         a = image.random_rotation(array, 180)
     if flag == 1:
@@ -173,4 +173,4 @@ def model_mix(lr):
 
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-0, 30, 10)
+    nn.train(1e-0, 30, 50)
