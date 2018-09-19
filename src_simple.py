@@ -37,7 +37,7 @@ def augm(array):
     c = image.random_shear(array, 180)
     d = image.random_zoom(array, (0.7, 1))
     e = image.random_channel_shift(array, 0.05)
-    f = image.random_brightness(array, 0.2)
+    f = image.random_brightness(array, (0.7, 1))
     g = img_pca(array)
     return [a, b, c, d, e, f, g]
 
