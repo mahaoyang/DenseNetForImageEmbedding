@@ -261,15 +261,6 @@ def attention_2d_block(inputs):
     return output_attention_mul
 
 
-def res_dense_block(inputs, dim):
-    a = attention_2d_block(inputs)
-    a = layers.BatchNormalization()(a)
-    a = layers.GaussianNoise(0.01)(a)
-    a = layers.Concatenate()([inputs, a])
-    a = layers.Dense(dim)(a)
-    a = layers.BatchNormalization()(a)
-    return a
-
 class MixNN(SimpleNN):
     @staticmethod
     def model(lr):
@@ -306,6 +297,22 @@ class MixNN(SimpleNN):
         return model
 
 
+def many_res_dense_block(inputs, headp, headplog, endplog, activation='linear'):
+    for i in range(headplog, endplog):
+        inputs = res_dense_block(inputs, int(headp*pow(2, i)), activation=activation)
+    return inputs
+
+
+def res_dense_block(inputs, dim, activation='linear'):
+    a = attention_2d_block(inputs)
+    a = layers.BatchNormalization()(a)
+    a = layers.GaussianNoise(0.3)(a)
+    a = layers.Concatenate()([inputs, a])
+    a = layers.Dense(dim, activation=activation)(a)
+    a = layers.BatchNormalization()(a)
+    return a
+
+
 def model_mix(lr):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
     base_model = DenseNet121(input_tensor=inputs, weights=None, include_top=False)
@@ -314,17 +321,17 @@ def model_mix(lr):
     img_features = Flatten()(x)
     img_features = layers.BatchNormalization()(img_features)
 
-    w0 = res_dense_block(img_features, 8)
-    w1 = res_dense_block(w0, 16)
-    w2 = res_dense_block(w1, 32)
-    w_out = res_dense_block(w2, 50)
-    w3 = res_dense_block(w_out, 64)
-    w4 = res_dense_block(w3, 128)
+    w0 = many_res_dense_block(img_features, 10, 0, 3)
+    w_out = Dense(50)(w0)
+    w0 = Concatenate()([w0, w_out])
+    w0 = BatchNormalization()(w0)
+    # w1 = Dense(50, activation='softmax')(w0)
+    w2 = many_res_dense_block(w0, 10, 3, 4)
 
-    p0 = attention_2d_block(w4)
+    p0 = attention_2d_block(w2)
     p0 = layers.BatchNormalization()(p0)
-    p0 = layers.GaussianNoise(0.01)(p0)
-    p0 = layers.Concatenate()([p0, w4])
+    p0 = layers.GaussianNoise(0.2)(p0)
+    p0 = layers.Concatenate()([p0, w2])
 
     predictions = Dense(230, activation='softmax')(p0)
 
