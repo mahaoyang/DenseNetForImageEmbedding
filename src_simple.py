@@ -32,14 +32,22 @@ def attention_2d_block(inputs):
 
 
 def augm(array):
-    a = image.random_rotation(array, 180)
-    b = image.random_shift(array, -0.3, 0.3)
-    c = image.random_shear(array, 180)
-    d = image.random_zoom(array, (0.7, 1))
-    e = image.random_channel_shift(array, 0.05)
-    f = image.random_brightness(array, (0.7, 1))
-    g = img_pca(array)
-    return [a, b, c, d, e, f, g]
+    flag = int(random.randint()/7)
+    if flag == 0:
+        a = image.random_rotation(array, 180)
+    if flag == 1:
+        a = image.random_shift(array, -0.3, 0.3)
+    if flag == 2:
+        a = image.random_shear(array, 180)
+    if flag == 3:
+        a = image.random_zoom(array, (0.7, 1))
+    if flag == 4:
+        a = image.random_channel_shift(array, 0.05)
+    if flag == 5:
+        a = image.random_brightness(array, (0.7, 1))
+    if flag == 6:
+        a = img_pca(array)
+    return a
 
 
 def dgen(data, batch_size):
@@ -49,8 +57,8 @@ def dgen(data, batch_size):
             index = random.randint(0, len(data))
             va = data[index]
             x.append(va[0])
-            x.extend(augm(va[0]))
-            for ii in range(8):
+            x.append(augm(va[0]))
+            for ii in range(2):
                 y.append(va[1])
         x = np.array(x)
         y = np.array(y)
