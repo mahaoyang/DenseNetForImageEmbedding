@@ -44,7 +44,7 @@ def augm(array):
     if flag == 4:
         a = image.random_channel_shift(array, 0.05)
     if flag == 5:
-        a = image.random_brightness(array, (0.1, 0.8))
+        a = image.random_brightness(array, (0.05, 0.8))
     if flag == 6:
         a = img_pca(array)
     return a
@@ -85,8 +85,8 @@ class MixNN(object):
         z = []
         # y = []
         for i in train_list:
-            # x.append(train_list[i]['img_array'])
-            # wx.append(train_list[i]['label_real_name_class_wordembeddings'])
+            x.append(train_list[i]['img_array'])
+            wx.append(np.array(train_list[i]['label_real_name_class_wordembeddings']).astype('float64'))
             z.append([np.array(train_list[i]['img_array']),
                       np.array(train_list[i]['label_real_name_class_wordembeddings']).astype('float64')])
             # temp = np.zeros((230,))
@@ -104,6 +104,7 @@ class MixNN(object):
         #           batch_size=batch_size)
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
+        model.load_weights(self.model_weights)
         model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
                             validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
         model.save(self.model_weights)
