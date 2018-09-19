@@ -95,8 +95,6 @@ class SimpleNN(object):
                 f.write('%s\t%s\n' % (i[0], i[1]))
 
 
-
-
 def model_3(lr=0.00001):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
 
@@ -270,6 +268,7 @@ def res_dense_block(inputs, dim):
     a = layers.BatchNormalization()(a)
     return a
 
+
 class MixNN(SimpleNN):
     @staticmethod
     def model(lr):
@@ -304,6 +303,12 @@ class MixNN(SimpleNN):
         eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
         print(eva)
         return model
+
+
+def many_res_dense_block(inputs, headp, headplog, endplog, activation='linear'):
+    for i in range(headplog, endplog):
+        inputs = res_dense_block(inputs, int(headp * pow(2, i)), activation=activation)
+    return inputs
 
 
 def model_mix(lr):
