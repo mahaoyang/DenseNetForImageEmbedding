@@ -24,6 +24,27 @@ path = 'C:/Users/99263/Downloads/lyb/'
 
 # path = '/Users/mahaoyang/Downloads/'
 
+
+def euclidean_distances(A, B):
+    BT = B.transpose()
+    # vecProd = A * BT
+    vecProd = np.dot(A, BT)
+    # print(vecProd)
+    SqA = A ** 2
+    # print(SqA)
+    sumSqA = np.matrix(np.sum(SqA, axis=1))
+    sumSqAEx = np.tile(sumSqA.transpose(), (1, vecProd.shape[1]))
+    # print(sumSqAEx)
+
+    SqB = B ** 2
+    sumSqB = np.sum(SqB, axis=1)
+    sumSqBEx = np.tile(sumSqB, (vecProd.shape[0], 1))
+    SqED = sumSqBEx + sumSqAEx - 2 * vecProd
+    SqED[SqED < 0] = 0.0
+    ed = np.sqrt(SqED)
+    return ed
+
+
 def attention_2d_block(inputs):
     dim = int(inputs.shape[1])
     a = layers.Dense(dim, activation='softmax')(inputs)
@@ -32,7 +53,7 @@ def attention_2d_block(inputs):
 
 
 def augm(array):
-    flag = int(random.randint(0, 5)/6)
+    flag = int(random.randint(0, 5) / 6)
     if flag == 0:
         a = image.random_rotation(array, 180)
     if flag == 1:
@@ -54,7 +75,7 @@ def dgen(data, batch_size):
     while 1:
         x, y = [], []
         for i in range(batch_size):
-            index = random.randint(0, len(data)-1)
+            index = random.randint(0, len(data) - 1)
             va = data[index]
             x.append(va[0])
             x.append(augm(va[0]))
@@ -70,8 +91,33 @@ class MixNN(object):
         self.base_path = base_path
         self.model_weights = model_weights
 
+    def submit(self):
+        model = self.model()
+        data = data2array(self.base_path)
+        reverse_label_list = data['reverse_label_list']
+        test_list = data['test_list']
+        test_list_array = data['test_list_array']
+        test_list_name = data['test_list_name']
+        model.load_weights(self.model_weights)
+        submit_lines = []
+        test_list_label_array = model.predict(np.array(test_list_array))
+        class_wordembed_keys = list(data['class_wordembeddings'].keys())
+        class_wordembed_array = np.array(list(data['class_wordembeddings'].values())).astype('float32')
+        dist = euclidean_distances(test_list_label_array, class_wordembed_array)
+        n = 0
+        for i in dist:
+            i = np.array(i)[0].tolist()
+            most_like = reverse_label_list[class_wordembed_keys[i.index(min(i))]]
+            submit_lines.append([test_list_name[n], most_like])
+            n += 1
+        submit = ''
+        for i in submit_lines:
+            submit += '%s\t%s\n' % (i[0], i[1])
+        with open('submit.txt', 'w') as f:
+            f.write(submit)
+
     @staticmethod
-    def model(lr):
+    def model(lr=0.1):
         return model_mix(lr)
 
     def train(self, lr, epochs, batch_size):
@@ -104,13 +150,13 @@ class MixNN(object):
         #           batch_size=batch_size)
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
-        # model.load_weights(self.model_weights)
-        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
+        model.load_weights(self.model_weights)
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=1000, epochs=epochs,
                             validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
         model.save(self.model_weights)
 
         # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
-        eva = model.evaluate_generator(dgen(np.array(z[val_num:]), batch_size=batch_size))
+        eva = model.evaluate_generator(dgen(np.array(z[val_num:]), batch_size=batch_size), steps=1000)
         print(eva)
         return model
 
@@ -174,4 +220,5 @@ def model_mix(lr):
 
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-0, epochs=30, batch_size=50)
+    nn.train(1e-4, epochs=80, batch_size=50)
+    nn.submit()
