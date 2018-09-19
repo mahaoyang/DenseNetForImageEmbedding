@@ -4,7 +4,7 @@ from keras.preprocessing import image  # 按照特定的矩阵对图片进行转
 
 def RGB_PCA(images):
     pixels = images.reshape(-1, images.shape[-1])
-    idx = np.random.random_integers(0, pixels.shape[0], 1000000)
+    idx = np.random.random_integers(0, pixels.shape[0]-1, 1000000)
     pixels = [pixels[i] for i in idx]
     pixels = np.array(pixels, dtype=np.uint8).T
     m = np.mean(pixels) / 256.
