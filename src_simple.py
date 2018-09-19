@@ -133,7 +133,7 @@ def res_dense_block(inputs, dim, activation='linear'):
 
 def model_mix(lr):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
-    base_model = applications.DenseNet201(input_tensor=inputs, weights=None, include_top=False)
+    base_model = applications.Xception(input_tensor=inputs, weights=None, include_top=False)
     x = base_model.output
     # x = layers.GaussianDropout(0.01)(x)
     img_features = layers.Flatten()(x)
