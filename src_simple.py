@@ -95,64 +95,6 @@ class SimpleNN(object):
                 f.write('%s\t%s\n' % (i[0], i[1]))
 
 
-def model_mix(lr):
-    inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
-    base_model = DenseNet121(input_tensor=inputs, weights=None, include_top=False)
-    x = base_model.output
-    img_features = Flatten()(x)
-
-    # word_input = Dense(30, activation='relu')(img_features)
-    word_input = Dense(50)(img_features)
-    word_input = layers.advanced_activations.PReLU(init='zero', weights=None, shared_axes=None)(word_input)
-    # wd = layers.BatchNormalization()(word_input)
-    # word_input = Embedding(input_dim=300, output_dim=230, input_length=1)(word_input)
-    # word_input = Flatten()(word_input)
-    # merged = Concatenate()([wd, img_features])
-    # merged = Dense(30, activation='relu')(word_input)
-    predictions = Dense(230, activation='softmax')(word_input)
-
-    opti = Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
-    model = Model(inputs=base_model.input, outputs=[predictions, word_input])
-    model.compile(optimizer=opti, loss=[losses.categorical_crossentropy, losses.mean_squared_error],
-                  metrics=['accuracy'])
-    model.summary()
-    return model
-
-
-class MixNN(SimpleNN):
-    @staticmethod
-    def model(lr):
-        return model_mix(lr)
-
-    def train(self, lr, epochs, batch_size):
-        model = self.model(lr)
-        data = data2array(self.base_path)
-        train_list = data['train_list']
-        train_num = 36000
-        x = []
-        wx = []
-        y = []
-        for i in train_list:
-            x.append(train_list[i]['img_array'])
-            wx.append(train_list[i]['label_real_name_class_wordembeddings'])
-            temp = np.zeros((230,))
-            temp[train_list[i]['label_array']] = 1
-            y.append(temp)
-        x = np.array(x)
-        wx = np.array(wx).astype('float64')
-        y = np.array(y)
-
-        # x = np.random.shuffle(x)
-        # wx = np.random.shuffle(wx)
-        # y = np.random.shuffle(y)
-
-        model.fit(x=x[:train_num], y=[y[:train_num], wx[:train_num]], validation_split=0.2, epochs=epochs,
-                  batch_size=batch_size)
-        model.save(self.model_weights)
-
-        eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
-        print(eva)
-        return model
 
 
 def model_3(lr=0.00001):
@@ -312,12 +254,94 @@ class PWNN(SimpleNN):
             f.write(submit)
 
 
+def attention_2d_block(inputs):
+    dim = int(inputs.shape[1])
+    a = layers.Dense(dim, activation='softmax')(inputs)
+    output_attention_mul = layers.multiply([inputs, a])
+    return output_attention_mul
+
+
+def res_dense_block(inputs, dim):
+    a = attention_2d_block(inputs)
+    a = layers.BatchNormalization()(a)
+    a = layers.GaussianNoise(0.01)(a)
+    a = layers.Concatenate()([inputs, a])
+    a = layers.Dense(dim)(a)
+    a = layers.BatchNormalization()(a)
+    return a
+
+class MixNN(SimpleNN):
+    @staticmethod
+    def model(lr):
+        return model_mix(lr)
+
+    def train(self, lr, epochs, batch_size):
+        model = self.model(lr)
+        data = data2array(self.base_path)
+        train_list = data['train_list']
+        train_num = 36000
+        x = []
+        wx = []
+        y = []
+        for i in train_list:
+            x.append(train_list[i]['img_array'])
+            wx.append(train_list[i]['label_real_name_class_wordembeddings'])
+            temp = np.zeros((230,))
+            temp[train_list[i]['label_array']] = 1
+            y.append(temp)
+        x = np.array(x)
+        wx = np.array(wx).astype('float64')
+        y = np.array(y)
+
+        # x = np.random.shuffle(x)
+        # wx = np.random.shuffle(wx)
+        # y = np.random.shuffle(y)
+
+        model.fit(x=x[:train_num], y=[y[:train_num], wx[:train_num]], validation_split=0.2, epochs=epochs,
+                  batch_size=batch_size)
+        model.save(self.model_weights)
+
+        eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
+        print(eva)
+        return model
+
+
+def model_mix(lr):
+    inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
+    base_model = DenseNet121(input_tensor=inputs, weights=None, include_top=False)
+    x = base_model.output
+    # x = layers.GaussianDropout(0.01)(x)
+    img_features = Flatten()(x)
+    img_features = layers.BatchNormalization()(img_features)
+
+    w0 = res_dense_block(img_features, 8)
+    w1 = res_dense_block(w0, 16)
+    w2 = res_dense_block(w1, 32)
+    w_out = res_dense_block(w2, 50)
+    w3 = res_dense_block(w_out, 64)
+    w4 = res_dense_block(w3, 128)
+
+    p0 = attention_2d_block(w4)
+    p0 = layers.BatchNormalization()(p0)
+    p0 = layers.GaussianNoise(0.01)(p0)
+    p0 = layers.Concatenate()([p0, w4])
+
+    predictions = Dense(230, activation='softmax')(p0)
+
+    opti = Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08)
+    model = Model(inputs=base_model.input, outputs=[predictions, w_out])
+    model.compile(optimizer=opti, loss=[losses.categorical_crossentropy, losses.mean_squared_logarithmic_error],
+                  metrics=['accuracy'])
+    model.summary()
+    return model
+
+
 if __name__ == '__main__':
     # nn = SimpleNN(base_path=path, model_weights=weights)
     # nn.train(1e-1, 5, 100)
     # nn.submit(1e-1)
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-1, 5, 100)
+    nn.train(1e-0, 30, 100)
     # model_3()
     # nn = PWNN(base_path=path, model_weights=weights)
     # model_weights = nn.train(lr=0.000001, epochs=3, batch_size=123, rstep=7, start_rstep=-1)
