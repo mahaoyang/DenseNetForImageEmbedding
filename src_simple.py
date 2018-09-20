@@ -16,9 +16,9 @@ import copy
 import random
 import math
 
-# np.random.seed(123)
+np.random.seed(123)
 img_size = (64, 64, 3)
-weights = 'DenseNet121_2.h5'
+weights = 'DenseNet121_3.h5'
 
 path = 'C:/Users/99263/Downloads/lyb/'
 
@@ -155,7 +155,7 @@ class MixNN(object):
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
 
-        # model.load_weights(self.model_weights)
+        model.load_weights(self.model_weights)
         model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
                             validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=100)
         model.save(self.model_weights)
