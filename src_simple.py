@@ -18,7 +18,7 @@ import math
 
 np.random.seed(123)
 img_size = (64, 64, 3)
-weights = 'DenseNet121_1.h5'
+weights = 'DenseNet121_2.h5'
 
 path = 'C:/Users/99263/Downloads/lyb/'
 
@@ -54,7 +54,7 @@ def attention_2d_block(inputs):
 
 
 def augm(array):
-    flag = int(random.randint(0, 0) / 7)
+    flag = int(random.randint(0, 6) / 7)
     if flag == 0:
         a = array
     if flag == 1:
@@ -154,9 +154,9 @@ class MixNN(object):
         #           batch_size=batch_size)
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
-        model.load_weights(self.model_weights)
+        # model.load_weights(self.model_weights)
         model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
-                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=5)
+                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=100)
         model.save(self.model_weights)
 
         # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
@@ -171,14 +171,14 @@ def many_res_dense_block(inputs, headp, headplog, endplog, activation='linear'):
     return inputs
 
 
-def res_dense_block(inputs, dim, activation='linear'):
+def res_dense_block(inputs, dim, inputs_img, activation='linear'):
     a = attention_2d_block(inputs)
     a = layers.BatchNormalization()(a)
     a = layers.Concatenate()([inputs, a])
     a = layers.Dense(dim, activation=activation)(a)
-    a = layers.BatchNormalization()(a)
-    b = layers.Dense(int(math.log(int(inputs.shape[1]), 2))+1)(inputs)
-    a = layers.Concatenate()([b, a])
+    b = layers.Dense(max(int(math.log(int(inputs.shape[1]), 2)) * 5, 1))(inputs)
+    c = layers.Dense(max(int(math.log(int(inputs.shape[1]), 2)) * 5, 1))(inputs_img)
+    a = layers.Concatenate()([c, b, a])
     a = layers.BatchNormalization()(a)
     a = layers.GaussianNoise(0.3)(a)
     return a
@@ -208,12 +208,13 @@ def model_mix(lr):
     # w01 = res_dense_block(w00, 12)
     # w02 = res_dense_block(w01, 24)
     # w_out = res_dense_block(w02, 50)
-    w0 = res_dense_block(img_features, 1)
-    for i in range(1, 10):
-        w0 = res_dense_block(w0, int(pow(2, i)))
+    w0 = res_dense_block(img_features, 1, img_features)
+    for i in range(1, 3):
+        w0 = res_dense_block(w0, int(pow(2, i)), img_features)
     # for i in range(1, 2):
     #     w0 = res_dense_block(w0, i)
     w_out = layers.Dense(50)(w0)
+    w_out = layers.BatchNormalization()(w_out)
     # w2 = w_out
     # w3 = res_dense_block(w2, 64)
     # w4 = res_dense_block(w3, 128)
