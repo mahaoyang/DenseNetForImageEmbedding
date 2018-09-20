@@ -53,11 +53,11 @@ def attention_2d_block(inputs):
 
 
 def augm(array):
-    flag = int(random.randint(0, 5) / 6)
+    flag = int(random.randint(0, 6) / 7)
     if flag == 0:
-        a = image.random_rotation(array, 180)
+        a = array
     if flag == 1:
-        a = image.random_shift(array, -0.3, 0.3)
+        a = image.random_shift(array, -0.2, 0.2)
     if flag == 2:
         a = image.random_shear(array, 90)
     if flag == 3:
@@ -66,7 +66,9 @@ def augm(array):
         a = img_pca(array)
     if flag == 5:
         a = image.random_brightness(array, (0.05, 0.8))
-    # if flag == 6:
+    if flag == 6:
+        a = image.random_rotation(array, 180)
+    # if flag == 7:
     #     a = image.random_channel_shift(array, 0.05)
     return a
 
@@ -77,10 +79,11 @@ def dgen(data, batch_size):
         for i in range(batch_size):
             index = random.randint(0, len(data) - 1)
             va = data[index]
-            x.append(va[0])
+            # x.append(va[0])
             x.append(augm(va[0]))
-            for ii in range(2):
-                y.append(va[1])
+            y.append(va[1])
+            # for ii in range(2):
+            #     y.append(va[1])
         x = np.array(x)
         y = np.array(y)
         yield x, y
@@ -151,8 +154,8 @@ class MixNN(object):
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
         model.load_weights(self.model_weights)
-        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=1000, epochs=epochs,
-                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
+                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=5)
         model.save(self.model_weights)
 
         # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
@@ -220,5 +223,5 @@ def model_mix(lr):
 
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-4, epochs=80, batch_size=50)
+    nn.train(1e-3, epochs=10, batch_size=50)
     nn.submit()
