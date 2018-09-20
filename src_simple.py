@@ -16,9 +16,9 @@ import copy
 import random
 import math
 
-np.random.seed(123)
+# np.random.seed(123)
 img_size = (64, 64, 3)
-weights = 'DenseNet121_3.h5'
+weights = 'DenseNet121_2.h5'
 
 path = 'C:/Users/99263/Downloads/lyb/'
 
@@ -202,7 +202,8 @@ def model_mix(lr):
     base_model = applications.Xception(input_tensor=inputs, weights=None, include_top=False)
     x = base_model.output
     # x = layers.GaussianDropout(0.01)(x)
-    img_features = layers.Flatten()(x)
+    # img_features = layers.Flatten()(x)
+    img_features = layers.GlobalMaxPooling2D()(x)
     img_features = layers.BatchNormalization()(img_features)
 
     # w00 = res_dense_block(img_features, 6)
