@@ -18,7 +18,7 @@ import math
 
 np.random.seed(123)
 img_size = (64, 64, 3)
-weights = 'DenseNet121_3.h5'
+weights = 'DenseNet121_4.h5'
 
 path = 'C:/Users/99263/Downloads/lyb/'
 
@@ -58,7 +58,7 @@ def augm(array):
     if flag == 0:
         a = array
     if flag == 1:
-        a = image.random_shift(array, -0.1, 0.1)
+        a = image.random_shift(array, -0.2, 0.2)
     if flag == 2:
         a = image.random_shear(array, 80)
     if flag == 3:
@@ -155,13 +155,14 @@ class MixNN(object):
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
 
-        model.load_weights(self.model_weights)
-        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
-                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=100)
+        # model.load_weights(self.model_weights)
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=10000, epochs=epochs,
+                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=200)
         model.save(self.model_weights)
+        print('saved')
 
         # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
-        eva = model.evaluate_generator(dgen(np.array(z[val_num:]), batch_size=batch_size), steps=1000)
+        eva = model.evaluate_generator(dgen(np.array(z[val_num:]), batch_size=batch_size), steps=100)
         print(eva)
         return model
 
@@ -199,23 +200,40 @@ def res_dense_block_explosive(inputs, dim, activation='linear'):
 
 def model_mix(lr):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
-    base_model = applications.Xception(input_tensor=inputs, weights=None, include_top=False)
+    base_model = applications.DenseNet121(input_tensor=inputs, weights='imagenet', include_top=False)
+    for layer in base_model.layers[:-3]:
+        layer.trainable = False
+    for layer in base_model.layers[-3:]:
+        layer.trainable = True
     x = base_model.output
     # x = layers.GaussianDropout(0.01)(x)
     # img_features = layers.Flatten()(x)
     img_features = layers.GlobalMaxPooling2D()(x)
-    img_features = layers.BatchNormalization()(img_features)
+
+    # img_features_ = layers.Dense(4)(img_features)
+    # img_features = layers.Concatenate()([img_features, img_features_])
+    # img_features = layers.GaussianDropout(0.2)(img_features)
+    #
+    # img_features_ = layers.Dense(64)(img_features)
+    # img_features = layers.Concatenate()([img_features, img_features_])
+    # img_features = layers.GaussianDropout(0.2)(img_features)
+    #
+    # img_features_ = layers.Dense(1024)(img_features)
+    # img_features = layers.Concatenate()([img_features, img_features_])
+    # img_features = layers.GaussianDropout(0.3)(img_features)
+
+    # img_features = layers.BatchNormalization()(img_features)
 
     # w00 = res_dense_block(img_features, 6)
     # w01 = res_dense_block(w00, 12)
     # w02 = res_dense_block(w01, 24)
     # w_out = res_dense_block(w02, 50)
-    w0 = res_dense_block(img_features, 1, img_features)
-    for i in range(1, 3):
-        w0 = res_dense_block(w0, int(pow(2, i)), img_features)
+    # w0 = res_dense_block(img_features, 1, img_features)
+    # for i in range(1, 2):
+    #     w0 = res_dense_block(w0, int(pow(2, i)), img_features)
     # for i in range(1, 2):
     #     w0 = res_dense_block(w0, i)
-    w_out = layers.Dense(50)(w0)
+    w_out = layers.Dense(50)(img_features)
     w_out = layers.BatchNormalization()(w_out)
     # w2 = w_out
     # w3 = res_dense_block(w2, 64)
@@ -243,5 +261,5 @@ def model_mix(lr):
 
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-0, epochs=10, batch_size=50)
+    nn.train(1e-1, epochs=2, batch_size=100)
     nn.submit()
