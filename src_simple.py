@@ -157,7 +157,7 @@ class MixNN(object):
 
         model.load_weights(self.model_weights)
         model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=60000, epochs=epochs,
-                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
+                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=100)
         model.save(self.model_weights)
         print('saved')
 
