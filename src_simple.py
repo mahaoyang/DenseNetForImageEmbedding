@@ -175,7 +175,7 @@ class MixNN(object):
 
         accbk = callbacks.EarlyStopping(monitor='val_loss', patience=10, verbose=0, mode='auto')
         lrcbk = callbacks.LearningRateScheduler(lr_schedule)
-        elrcbk = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=0,
+        elrcbk = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2, verbose=0,
                                              mode='auto', min_delta=1e-4, cooldown=3, min_lr=1e-64)
         cbks = [accbk, lrcbk, elrcbk]
 
@@ -183,8 +183,8 @@ class MixNN(object):
             model.load_weights(self.model_weights)
         except Exception as E:
             pass
-        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=200, epochs=epochs,
-                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=10,
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=1000, epochs=epochs,
+                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=100,
                             callbacks=cbks)
         model.save(self.model_weights)
         print('saved')
