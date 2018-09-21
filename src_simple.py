@@ -7,6 +7,7 @@ from keras import applications
 from keras.optimizers import Adam, RMSprop
 from keras import losses
 from keras.preprocessing import image
+from keras import callbacks
 from keras import metrics
 import numpy as np
 import pickle
@@ -18,7 +19,7 @@ import math
 
 np.random.seed(123)
 img_size = (64, 64, 3)
-weights = 'DenseNet121_4.h5'
+weights = 'Xcp.h5'
 
 path = 'C:/Users/99263/Downloads/lyb/'
 
@@ -121,10 +122,10 @@ class MixNN(object):
             f.write(submit)
 
     @staticmethod
-    def model(lr=0.1):
-        return model_mix(lr)
+    def model(lr=0.1, frz=-7):
+        return model_mix(lr, frz)
 
-    def train(self, lr, epochs, batch_size):
+    def train(self, lr, epochs, batch_size, frz=-7):
         model = self.model(lr)
         data = data2array(self.base_path)
         train_list = data['train_list']
@@ -154,16 +155,44 @@ class MixNN(object):
         #           batch_size=batch_size)
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
+        lr = lr
 
-        # model.load_weights(self.model_weights)
-        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=10, epochs=epochs,
-                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=100)
+        def lr_schedule(epoch):
+            lr_sch = [1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8]
+            if epoch > 0.95 * epochs:
+                lr = lr_sch[-1]
+            elif epoch > 0.85 * epochs:
+                lr = lr_sch[-2]
+            elif epoch > 0.75 * epochs:
+                lr = lr_sch[-3]
+            elif epoch > 0.45 * epochs:
+                lr = lr_sch[-4]
+            elif epoch > 0.15 * epochs:
+                lr = lr_sch[-5]
+            else:
+                lr = lr_sch[-6]
+            return lr
+
+        accbk = callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto')
+        lrcbk = callbacks.LearningRateScheduler(lr_schedule)
+        elrcbk = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2, verbose=0,
+                                             mode='auto', min_delta=1e-4, cooldown=3, min_lr=1e-64)
+        cbks = [accbk, lrcbk, elrcbk]
+
+        try:
+            model.load_weights(self.model_weights)
+        except Exception as E:
+            pass
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=1000, epochs=epochs,
+                            validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=50,
+                            callbacks=cbks)
         model.save(self.model_weights)
         print('saved')
 
         # eva = model.evaluate(x=x[train_num:], y=[y[train_num:], wx[train_num:]])
         eva = model.evaluate_generator(dgen(np.array(z[val_num:]), batch_size=batch_size), steps=100)
         print(eva)
+
         return model
 
 
@@ -198,12 +227,12 @@ def res_dense_block_explosive(inputs, dim, activation='linear'):
     return a
 
 
-def model_mix(lr):
+def model_mix(lr, frz):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
-    base_model = applications.DenseNet121(input_tensor=inputs, weights='imagenet', include_top=False)
-    for layer in base_model.layers[:-7]:
-        layer.trainable = True
-    for layer in base_model.layers[-7:]:
+    base_model = applications.Xception(input_tensor=inputs, weights=None, include_top=False)
+    for layer in base_model.layers:
+        layer.trainable = False
+    for layer in base_model.layers[frz:]:
         layer.trainable = True
     # for i in range(12):
     #     base_model.layers.pop()
@@ -262,6 +291,15 @@ def model_mix(lr):
 
 
 if __name__ == '__main__':
-    nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-7, epochs=30, batch_size=100)
-    nn.submit()
+    import traceback
+
+    round = 0
+    frzs = [-7, -17, -27, -37, -47, -57, -100]
+    while 1:
+        try:
+            nn = MixNN(base_path=path, model_weights=weights)
+            nn.train(1e-3, epochs=1000, batch_size=200, frz=frzs[int(round/2)])
+            nn.submit()
+            round += 1
+        except Exception as E:
+            print(traceback.format_exc())
