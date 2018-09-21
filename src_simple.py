@@ -155,8 +155,8 @@ class MixNN(object):
         # model.fit(x=x[:train_num], y=wx[:train_num], validation_split=0.2, epochs=epochs,
         #           batch_size=batch_size)
 
-        model.load_weights(self.model_weights)
-        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=60000, epochs=epochs,
+        # model.load_weights(self.model_weights)
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=10, epochs=epochs,
                             validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=100)
         model.save(self.model_weights)
         print('saved')
@@ -182,7 +182,7 @@ def res_dense_block(inputs, dim, inputs_img, activation='linear'):
     c = layers.Dense(max(int(math.log(int(inputs.shape[1]), 2)) * 5, 1))(inputs_img)
     a = layers.Concatenate()([c, b, a])
     a = layers.BatchNormalization()(a)
-    a = layers.GaussianNoise(0.3)(a)
+    a = layers.GaussianDropout(0.1)(a)
     return a
 
 
@@ -200,9 +200,9 @@ def res_dense_block_explosive(inputs, dim, activation='linear'):
 
 def model_mix(lr):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
-    base_model = applications.Xception(input_tensor=inputs, weights='imagenet', include_top=False)
+    base_model = applications.DenseNet121(input_tensor=inputs, weights='imagenet', include_top=False)
     for layer in base_model.layers[:-7]:
-        layer.trainable = False
+        layer.trainable = True
     for layer in base_model.layers[-7:]:
         layer.trainable = True
     # for i in range(12):
@@ -231,7 +231,7 @@ def model_mix(lr):
     # w02 = res_dense_block(w01, 24)
     # w_out = res_dense_block(w02, 50)
     # w0 = res_dense_block(img_features, 1, img_features)
-    # for i in range(1, 2):
+    # for i in range(1, 3):
     #     w0 = res_dense_block(w0, int(pow(2, i)), img_features)
     # for i in range(1, 2):
     #     w0 = res_dense_block(w0, i)
@@ -263,5 +263,5 @@ def model_mix(lr):
 
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-3, epochs=1, batch_size=100)
+    nn.train(1e-7, epochs=30, batch_size=100)
     nn.submit()
