@@ -263,3 +263,4 @@ if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
     nn.train(1e-1, epochs=2, batch_size=100)
     nn.submit()
+
