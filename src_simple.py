@@ -156,7 +156,7 @@ class MixNN(object):
         #           batch_size=batch_size)
 
         model.load_weights(self.model_weights)
-        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=100, epochs=epochs,
+        model.fit_generator(dgen(z[:train_num], batch_size=batch_size), steps_per_epoch=60000, epochs=epochs,
                             validation_data=dgen(z[train_num:-val_num], batch_size=batch_size), validation_steps=20)
         model.save(self.model_weights)
         print('saved')
@@ -201,11 +201,13 @@ def res_dense_block_explosive(inputs, dim, activation='linear'):
 def model_mix(lr):
     inputs = Input(shape=(img_size[0], img_size[1], img_size[2]))
     base_model = applications.VGG16(input_tensor=inputs, weights='imagenet', include_top=False)
-    for layer in base_model.layers[:-3]:
+    for layer in base_model.layers[:-8]:
         layer.trainable = False
-    for layer in base_model.layers[-3:]:
-        layer.trainable = True
-    x = base_model.output
+    for layer in base_model.layers[-8:]:
+        layer.trainable = False
+    for i in range(15):
+        base_model.layers.pop()
+    x = base_model.layers[-1].output
     # x = layers.GaussianDropout(0.01)(x)
     # img_features = layers.Flatten()(x)
     img_features = layers.GlobalMaxPooling2D()(x)
@@ -261,6 +263,5 @@ def model_mix(lr):
 
 if __name__ == '__main__':
     nn = MixNN(base_path=path, model_weights=weights)
-    nn.train(1e-5, epochs=2, batch_size=100)
+    nn.train(1e-0, epochs=1, batch_size=100)
     nn.submit()
-
