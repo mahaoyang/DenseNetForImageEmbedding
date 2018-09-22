@@ -173,9 +173,9 @@ class MixNN(object):
                 lr = lr_sch[-6]
             return lr
 
-        accbk = callbacks.EarlyStopping(monitor='val_loss', patience=0, verbose=0, mode='auto')
+        accbk = callbacks.EarlyStopping(monitor='val_acc', patience=1, verbose=0, mode='auto')
         lrcbk = callbacks.LearningRateScheduler(lr_schedule)
-        elrcbk = callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.01, patience=0, verbose=0,
+        elrcbk = callbacks.ReduceLROnPlateau(monitor='val_acc', factor=0.01, patience=0, verbose=0,
                                              mode='auto', min_delta=1e-4, cooldown=3, min_lr=1e-64)
         cbks = [accbk, lrcbk, elrcbk]
 
@@ -298,7 +298,7 @@ if __name__ == '__main__':
     while 1:
         try:
             nn = MixNN(base_path=path, model_weights=weights)
-            nn.train(1e-5, epochs=10000, batch_size=200, frz=frzs[int(round / 2) % 7])
+            nn.train(1e-5, epochs=10000, batch_size=200, frz=frzs[int(round / 3) % 7])
             nn.submit()
             round += 1
         except Exception as E:
