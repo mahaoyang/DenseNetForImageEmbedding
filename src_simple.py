@@ -173,7 +173,7 @@ class MixNN(object):
                 lr = lr_sch[-6]
             return lr
 
-        accbk = callbacks.EarlyStopping(monitor='val_acc', patience=1, verbose=0, mode='auto')
+        accbk = callbacks.EarlyStopping(monitor='val_acc', patience=0, verbose=0, mode='max')
         lrcbk = callbacks.LearningRateScheduler(lr_schedule)
         elrcbk = callbacks.ReduceLROnPlateau(monitor='val_acc', factor=0.01, patience=0, verbose=0,
                                              mode='auto', min_delta=1e-4, cooldown=3, min_lr=1e-64)
